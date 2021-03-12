@@ -1,0 +1,71 @@
+# Variant 12
+# Spivac Iana FAF-192
+
+NFA = {}
+inputs = ['a', 'b', 'c']
+states = ['q0', 'q1', 'q2', 'q3']
+transitions = [['q0', 'b', 'q0'], ['q0', 'a', 'q1'], ['q1', 'c', 'q1'], ['q1', 'a', 'q2'], ['q2', 'a', 'q3'],
+               ['q3', 'a', 'q1'], ['q3', 'a', 'q3']]
+
+
+for transition in transitions:
+    if transition[0] not in NFA.keys():
+        NFA[transition[0]] = []
+    NFA[transition[0]].append([transition[1], transition[2]])
+
+# function which verifies if some state already exists
+def containsAll(str, set):
+    contains = False
+    for c in str:
+        if ''.join(sorted(c)) == ''.join(sorted(set)):
+            contains = True
+    return contains
+
+
+def conversion():
+    # for every state which has a transition
+    for state in states:
+        if state in NFA.keys():
+            # verify for all inputs
+            for input in inputs:
+                new_state = ''
+                new_destinations = []
+                nr_of_equal_inputs = 0
+                # verify all transitions of a state
+                for transition in NFA[state]:
+                    # if the iterative input coincides with some input from transition
+                    if input == transition[0]:
+                        nr_of_equal_inputs += 1
+                        # getting the name of new state
+                        new_state += transition[1]
+                        # getting the new states-destinations
+                        new_destinations.append(transition[1])
+                # if there are more than 2 equal inputs present
+                if nr_of_equal_inputs > 1:
+                    # verify if the state is already present in the table
+                    if containsAll(NFA.keys(), new_state):
+                        return
+                    NFA[new_state] = []
+                    for destination in new_destinations:
+                        for trans in NFA[destination]:
+                            # exclude duplicate transitions
+                            if trans not in NFA[new_state]: NFA[new_state].append(trans)
+                    states.append(new_state)
+
+
+def print_table():
+    print("{:<13}".format('States'), end=' ')
+    for input in inputs:
+        print("{:<13}".format(input), end=' ')
+    for state in states:
+        print("\n{:<13}".format(state), end=' ')
+        if state in NFA.keys():
+            for input in inputs:
+                input1 = ''
+                for transition in NFA[state]:
+                    if input == transition[0]:
+                        input1 += transition[1]
+                print("{:<13}".format(input1), end=' ')
+
+conversion()
+print_table()
