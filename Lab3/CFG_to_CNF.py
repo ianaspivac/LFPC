@@ -1,9 +1,10 @@
+#Conversion Context Free Grammar to Chomsky Normal Form
+#Spivac Iana FAF-192
+#Variant 12
 Vn = ['S', 'A', 'B', 'C', 'D']
 Vt = ['a', 'b']
-P = ["S->AC", "S->bA", "S->B", "A->$", "S->aA", "A->ABAb", "B->a", "B->AbSA", "C->abC", "D->AB", "A->aS"]
+P = ["S->bA", "S->AC", "A->bS", "A->BC", "A->AbAa", "B->BbaA", "B->a", "B->bSA", "C->$", "D->AB"]
 
-# defining states
-# state which leads to a pair of accepted states and their input
 states = {}
 states1 = {}
 emptyProductions = []
@@ -22,7 +23,6 @@ def readInput():
                 if symbol == '$': emptyProductions.append(symbols[0])
         states[symbols.pop(0)].append(symbols)
 
-
 def printProductions(dict):
     for left, right in dict.items():
         for productions in right:
@@ -30,7 +30,6 @@ def printProductions(dict):
             for character in productions:
                 rightSide += character
             print(left + '->' + rightSide)
-
 
 def step1():
     for emptyProduction in emptyProductions:
@@ -58,43 +57,48 @@ def step1():
                         if element != positionEmpty: newRightSide.append(production[element])
                     states1[leftSide].append(newRightSide)
 
-
 def addingProductions(leftSide, key):
     for i in range(0, len(states1[key]), 1):
         if states1[key][i] not in states1[leftSide]:
             states1[leftSide].append(states1[key][i])
 
-
 def step2():
     for leftSide, rightSide in states1.items():
         for productions in rightSide:
             for character in productions:
+                #if there is only one non terminal on right, the productions of it will be
+                #added to current state on left
                 if character in Vn and len(productions) == 1:
                     addingProductions(leftSide, character)
+                    #getting rid of that production
                     states1[leftSide].remove(productions)
-
 
 def findNonReccurence(nonTerminal):
     for leftSide, rightSide in states1.items():
         for productions in rightSide:
             for character in productions:
+                #next productive non terminal is found
                 if character == nonTerminal and leftSide not in productive:
                     productive.append(leftSide)
                     return findNonReccurence(leftSide)
-
 
 def findProductive():
     for leftSide, rightSide in states1.items():
         for productions in rightSide:
             nrCharacters = 0
+            #if production on right has terminal
             for character in productions:
                 if character in Vt:
                     nrCharacters += 1
+            #and all production on right consist of terminals
             if nrCharacters == len(productions):
+                #the right side for sure in productive
                 productive.append(leftSide)
+                #and other productions containing this right side, should be verified
                 findNonReccurence(leftSide)
 
 def removeProductions(array):
+    #removing productions which consist of nonProductive
     for element in array:
         for leftSide, rightSide in states1.items():
             for productions in rightSide:
@@ -102,7 +106,6 @@ def removeProductions(array):
                     if character == element:
                         states1[leftSide].remove(productions)
                         break
-
 
 def step3():
     findProductive()
@@ -112,31 +115,32 @@ def step3():
     removeProductions(nonProductive)
     for element in nonProductive: states1.pop(element)
 
-
 def isInaccesible(element):
+    #element here represents the non terminal, so if no productions are containg it
+    #it will be marked and the productions of it will be removed
     for leftSide, rightSide in states1.items():
         for productions in rightSide:
             for character in productions:
                 if character == element: return False
     return True
 
-
 def step4():
     for element in list(states1):
         if isInaccesible(element):
             del states1[element]
+
+def appendProduction(dict,arrayAppend,left):
+    dict[left] = []
+    dict[left].append(arrayAppend)
 
 def conversionTerminals():
     i = 1
     for element in Vt:
         oldChar = element
         element = "X" + str(i)
-        states2[element] = []
-        states2[element].append([oldChar])
-        newStates[element] = []
-        newStates[element].append([oldChar])
+        appendProduction(states2,[oldChar],element)
+        appendProduction(newStates, [oldChar], element)
         i += 1
-
 
 global iteration
 iteration = 1
@@ -145,6 +149,7 @@ def conversionNonTerminals(term1, term2):
     global iteration
     element = "Y" + str(iteration)
     k=0
+    #this loop could be written in 2 lines,but dumb interpreter kept give me an error
     for produces in newStates.values():
         if [term1, term2] in produces:
             m=0
@@ -152,10 +157,8 @@ def conversionNonTerminals(term1, term2):
                 if(m==k):return key
                 m+=1
         k+=1
-    newStates[element] = []
-    newStates[element].append([term1, term2])
-    states3[element] = []
-    states3[element].append([term1, term2])
+    appendProduction(newStates, [term1, term2], element)
+    appendProduction(states3, [term1, term2], element)
     iteration += 1
     return element
 
@@ -176,17 +179,14 @@ def addTerminals(dict, i):
                 if leftSide not in tempStates.keys() :
                     tempStates[leftSide] = []
                 tempStates[leftSide].append(productions)
-                if len(productions) > 2:
-                    repeat = True
-            if len(productions) <= 2 and leftSide not in states3.keys():
-                states3[leftSide] = []
-                states3[leftSide].append(productions)
-            elif len(productions) <= 2 and productions not in states3[leftSide]:
-                print(leftSide,productions,states3[leftSide])
-                states3[leftSide].append(productions)
+                repeat = True
+            else:
+                if leftSide not in states3.keys():
+                    appendProduction(states3, productions, leftSide)
+                elif productions not in states3[leftSide]:
+                    states3[leftSide].append(productions)
     if repeat == True:
         return addTerminals(tempStates, i)
-
 
 def step5():
     conversionTerminals()
@@ -200,14 +200,11 @@ def step5():
             states2[leftSide].append(newRightSide)
     addTerminals(states2, 1)
 
-
 readInput()
 print("Initial Context Free Grammar:")
 printProductions(states1)
-if len(emptyProductions) != 0:
-    step1()
-else:
-    states1 = states
+if len(emptyProductions) != 0:step1()
+else: states1 = states
 print("Getting rid of epsilon produces:")
 printProductions(states1)
 step2()
@@ -222,4 +219,5 @@ printProductions(states1)
 step5()
 print("The Chomsky Normal Form:")
 printProductions(states3)
+
 
