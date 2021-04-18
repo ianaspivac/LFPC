@@ -133,6 +133,7 @@ def appendProduction(dict,arrayAppend,left):
     dict[left] = []
     dict[left].append(arrayAppend)
 
+#one iteration to replace all terminals as X
 def conversionTerminals():
     i = 1
     for element in Vt:
@@ -145,6 +146,8 @@ def conversionTerminals():
 global iteration
 iteration = 1
 
+#converting into new produce for produces which contain more
+#than 2 non-terminals
 def conversionNonTerminals(term1, term2):
     global iteration
     element = "Y" + str(iteration)
@@ -167,6 +170,8 @@ def replaceTerminals(element):
         for terminal in right:
             if terminal[0] in element: return left
 
+#recursive function which will generate every time a new produce
+#and will stop when all produces will repect chomsky rule(no more than 2 non-terminals on right)
 def addTerminals(dict, i):
     repeat = False
     tempStates = {}
