@@ -6,7 +6,6 @@
 # P = ["S->BfD", "B->Bc", "B->D", "D->Ag", "D->A", "A->d","A->c"]
 # word = "dgcfdg"
 
-
 Vn = ['S', 'F', 'L', 'E']
 Vt = ['a', 'b', 'c', 'd','e']
 P = ["S->LdF", "F->E", "L->ca", "L->La", "E->b", "E->Eeb"]
@@ -127,15 +126,14 @@ def verifyInput(input, matrix):
                     #if "<" occurs it means it shall abort current opening "<" and get to next
                     for j in range(start,i):
                         newInput.append(input[j])
-                    i -= 1
                     symbols=[]
+                    i -=1
                     break
                 if input[i] in allSymbols:
                     #adding all terms between "<" and ">"
                     symbols.append(input[i])
                 i += 1
             i += 1
-            print(symbols)
             if len(symbols) == 1:
                 if input[i] != '$':
                     #if one term has connection "=" on its right side
@@ -146,7 +144,7 @@ def verifyInput(input, matrix):
                         newInput.extend(["=",input[i-4],">"])
                     else:
                         newInput.extend(replaceTerm(symbols))
-                    i -= 1
+                #else if it's "$"
                 else:
                     if matrix[input[start-1]][input[start+1]][0] == "=":
                         newInput.extend(["=",input[start+1],">"])
@@ -158,27 +156,25 @@ def verifyInput(input, matrix):
                     if symbols in rightSide:
                         newInput.append(leftSide)
                         newInput.append(">")
-                i -= 1
         else:
             newInput.append(input[i])
-
-        i += 1
+            i += 1
     newInput.append("$")
     printParse(newInput)
     #recurence will occur while single "S" with additional symbols($,<,>) will not remain
     if len(newInput) > 5:
-        newInput.append("$")
         verifyInput(newInput, matrix)
 
 
 def parseInput(input, matrix):
     inputList = []
+    #adding to matrix symbols
     for i in range(0, (len(input) - 1) * 2, 2):
         input = input[:i + 1] + matrix[input[i]][input[i + 1]][0] + input[i + 1:]
+    #turning input string to list
     for symbol in input:
         inputList.append(symbol)
     verifyInput(inputList, matrix)
-
 
 readInput()
 firstLast()
